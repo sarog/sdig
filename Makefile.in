@@ -53,6 +53,7 @@ install-bin:
 install-conf:
 	./install-sh -d $(CONFDIR)
 	$(INSTALLCMD) -m $(INSTALLMODE_CONF) sdig.conf $(CONFDIR)/sdig.conf-sample
+	$(INSTALLCMD) -m $(INSTALLMODE_CONF) mactable $(CONFDIR)/mactable-sample
 
 install-man:
 	./install-sh -d $(MANDIR)/man5
