@@ -1,3 +1,10 @@
+0.41:
+
+Sat Nov 20 15:16:26 PST 2004 / Russell Jackson <raj@cserv62.csub.edu>
+
+ * Update Makefile.in to compile on FreeBSD
+ * Change output to include ifAlias and ifName
+
 0.40:
 
 Fri Apr  4 08:56:07 MST 2003 / Russell Kroll <rkroll@exploits.org>
