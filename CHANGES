@@ -1,3 +1,9 @@
+0.43:
+
+Mon Apr 11 02:10:09 PDT 2005 / Russell Jackson <raj@csub.edu>
+
+ * Fix build on solaris
+
 0.42:
 
 Thr Nov 25 14:06:42 PST 2004 / Russell Jackson <raj@cserv62.csub.edu>
