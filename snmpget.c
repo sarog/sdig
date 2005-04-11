@@ -153,6 +153,9 @@ char *snmpget_str(char *host, char *community, char *reqoid)
 		return NULL;
 	}
 
+	if (response->variables->val_len == 0)
+	    	return NULL;
+
 	final = malloc(response->variables->val_len + 1);
 	snprintf(final, response->variables->val_len + 1, "%s", 
 		response->variables->val.string);

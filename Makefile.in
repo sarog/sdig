@@ -9,8 +9,8 @@ CONFDIR	= $(DESTDIR)@sysconfdir@
 MANDIR	= $(DESTDIR)@mandir@
 
 # other definitions
-CC	?= @CC@
-CFLAGS	+= -Iinclude -I/usr/local/include 
+CC	= @CC@
+CFLAGS	= -Iinclude -I/usr/local/include 
 
 INSTALLCMD       = @INSTALL@
 INSTALLMODE_BIN	 = 0755

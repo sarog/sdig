@@ -35,6 +35,14 @@ else
 	AC_MSG_RESULT($NETSNMP_LIBS)
 fi
 
+AC_CHECK_FUNC(inet_aton)
+AC_CHECK_FUNC(inet_pton, AC_DEFINE(HAVE_INET_PTON),
+	AC_CHECK_LIB(nsl, inet_pton, AC_DEFINE(HAVE_INET_PTON)
+	LIBS="${LIBS} -lnsl"))
+
+AC_SUBST(HAVE_INET_PTON)
+AC_SUBST(HAVE_INET_ATON)
+
 # expand $sysconfdir and write it out
 eval conftemp=${sysconfdir}
 AC_DEFINE_UNQUOTED(CONFPATH, "$conftemp",

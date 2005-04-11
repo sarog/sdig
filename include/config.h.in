@@ -17,3 +17,6 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+#undef HAVE_INET_ATON
+#undef HAVE_INET_PTON

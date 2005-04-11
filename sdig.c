@@ -322,7 +322,7 @@ static char *getdesc(const char *ip, long port)
 	return NULL;
 }
 
-static char *macmfr(unsigned char *inmac)
+static const char *macmfr(unsigned char *inmac)
 {
 	FILE	*macdb;
 	char	buf[256], *tmp, macfind[16];
@@ -514,7 +514,13 @@ static void dnsreverse(const char *ip)
 	struct	hostent	*dns;
 	struct	in_addr	addr;
 
+#if HAVE_INET_ATON
 	inet_aton(ip, &addr);
+#elif HAVE_INET_PTON
+	inet_pton(AF_INET, ip, &addr);
+#else
+#error	Cannot convert address
+#endif
 
 	dns = gethostbyaddr((char *)&addr, sizeof(struct in_addr), AF_INET);
 

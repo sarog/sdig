@@ -45,7 +45,7 @@
  * 7 - popen reads
  */
 
-void debug(int level, char *format, ...)
+void debug(int level, const char *format, ...)
 {
 	va_list	args;
 

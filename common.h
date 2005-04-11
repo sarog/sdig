@@ -2,7 +2,7 @@
 
 #define LARGEBUF 1024
 
-void debug(int level, char *format, ...);
+void debug(int level, const char *format, ...);
 void fatal(const char *fmt, ...);
 int parseconf(const char *fn, int ln, char *buf, char **arg, int numargs);
 int snprintfcat(char *dst, size_t size, const char *fmt, ...);
