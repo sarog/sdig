@@ -34,7 +34,7 @@
 #include "snmpget.h"
 #include "version.h"
 
-#include "config.h"
+#include "../include/config.h"
 
 	stype	*firstsw = NULL;
 	rtype	*firstrt = NULL;
@@ -248,7 +248,7 @@ static void loadconfig(const char *fn)
 	int	ln, i;
 
 	if (!fn) {
-		snprintf(cfn, sizeof(cfn), "%s/sdig.conf", CONFPATH);
+		snprintf(cfn, sizeof(cfn), "%s/sdig.conf", "CONFPATH");
 		conf = fopen(cfn, "r");
 	} else {
 		conf = fopen(fn, "r");
@@ -364,7 +364,7 @@ static void help(const char *prog)
 	printf("  -d		- increase debug level\n");
 	printf("  -F		- fast mode - no DNS/NetBIOS reverse lookups\n");	
 	printf("  -f <config>	- use alternate config <config>\n");
-	printf("                  default %s/sdig.conf\n", CONFPATH);
+	printf("                  default %s/sdig.conf\n", "CONFPATH");
 	printf("  -m <MAC>	- force MAC <MAC>, xx:xx:xx:xx:xx:xx format\n");
 	printf("  -v		- be verbose\n");
 	printf("  <IP>		- IP address to find\n");
