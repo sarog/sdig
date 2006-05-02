@@ -33,7 +33,8 @@
 
 #include "common.h"
 
-	int	debuglevel = 0;
+static int		debuglevel = 0;
+static const char	*oom_msg = "Out of memory";
 
 /* debug levels:
  *
@@ -45,7 +46,8 @@
  * 7 - popen reads
  */
 
-void debug(int level, const char *format, ...)
+void
+debug(int level, const char *format, ...)
 {
 	va_list	args;
 
@@ -57,7 +59,8 @@ void debug(int level, const char *format, ...)
 	va_end(args);
 }
 
-void fatal(const char *fmt, ...)
+void
+fatal(const char *fmt, ...)
 {
 	va_list va;
 	char	msg[LARGEBUF];
@@ -70,138 +73,8 @@ void fatal(const char *fmt, ...)
         exit(1);
 }
 
-
-/* split up buf into a number of substrings, returning pointers in arg */
-int parseconf(const char *fn, int ln, char *buf, char **arg, int numargs)
-{
-	char	*ptr, *ws;
-	int	i, buflen, an, state;
-
-	an = state = 0;
-	ws = NULL;
-
-	buflen = strlen (buf);
-	ptr = buf;
-
-	/* yes, it's a state machine! be afraid! */
-
-	for (i = 0; i < buflen; i++) {
-		switch (state) {
-			case 0:		/* scan */
-				if (*ptr == '"') {
-					ws = ptr + 1; 	/* start after quote */
-					state = 1;	/* goto quotecollect */
-					break;
-				}
-
-				if (isspace(*ptr))
-					break;		/* loop */
-
-				if (*ptr == '\\') {	/* literal as start */
-					if (i == (buflen - 1)) {
-						fprintf(stderr, "%s:%d:"
-						"\\ at end of line!", 
-						fn, ln);
-						return 0;	/* failure */
-					}
-
-					ws = ptr;
-
-					/* shift string to the left */
-					memmove(ptr, ptr+1, buflen-i);
-
-					/* fix length */
-					buflen--;
-
-					state = 2;	/* goto collect */
-				}
-
-				if (!isspace(*ptr)) {
-					ws = ptr;
-					state = 2;	/* goto collect */
-					break;
-				}
-			
-				break;
-
-			case 1:		/* quotecollect */
-				if (*ptr == '"')
-					state = 3;	/* goto save */
-
-				if (*ptr == '\\') {	/* literal handling */
-					if (i == (buflen - 1)) {
-						fprintf(stderr, "%s:%d:"
-						"\\ at end of line!", 
-						fn, ln);
-						return 0;	/* failure */
-					}
-
-					/* shift string to the left */
-					memmove(ptr, ptr+1, buflen-i);
-
-					/* fix length */
-					buflen--;
-				}
-
-				break;			/* loop */
-
-			case 2:		/* collect */
-				if (*ptr == '\\') {	/* literal handling */
-					if (i == (buflen - 1)) {
-						fprintf(stderr, "%s:%d:"
-						"\\ at end of line!", 
-						fn, ln);
-						return 0;	/* failure */
-					}
-
-					/* shift string to the left */
-					memmove(ptr, ptr+1, buflen-i);
-
-					/* fix length */
-					buflen--;
-					break;		/* loop */
-				}
-
-				if (!isspace(*ptr))
-					break;		/* loop */
-
-				state = 3;		/* goto save */
-		}
-
-		if (state == 3) {		/* save */
-			if (an < numargs)
-				arg[an++] = ws;
-			*ptr = '\0';
-			ws = NULL;
-			state = 0;
-		}
-
-		ptr++;
-	}
-
-	if (state == 1) {	/* end-of-string in state 1 == missing quote */
-		fprintf(stderr, "%s:%d: Unbalanced \" in line", fn, ln);
-		return 0;	/* FAILED */
-	}
-
-	if (state == 2) {	/* catch last word when exiting from collect */
-		*ptr = '\0';
-		if (an < numargs)
-			arg[an++] = ws;
-	}
-
-	/* zap any leftover pointers */
-	for (i = an; i < numargs; i++)
-		arg[i] = NULL;
-
-	/* safety catch: don't allow all nulls back as 'success' */
-	if (arg[0] == NULL)
-		return 0;	/* FAILED (don't parse this) */
-
-	return 1;	/* success */
-}
-
-int snprintfcat(char *dst, size_t size, const char *fmt, ...)
+int
+snprintfcat(char *dst, size_t size, const char *fmt, ...)
 {
 	va_list ap;
 	int len = strlen(dst);
@@ -217,9 +90,8 @@ int snprintfcat(char *dst, size_t size, const char *fmt, ...)
 	return len + ret;
 }
 
-static const char *oom_msg = "Out of memory";
-
-void *xmalloc(size_t size)
+void
+*xmalloc(size_t size)
 {
 	void *p = malloc(size);
 
@@ -228,7 +100,8 @@ void *xmalloc(size_t size)
 	return p;
 }
 
-char *xstrdup(const char *string)
+char
+*xstrdup(const char *string)
 {
 	char *p = strdup(string);
 
@@ -236,4 +109,3 @@ char *xstrdup(const char *string)
 		fatal("%s", oom_msg);
 	return p;
 }
-

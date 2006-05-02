@@ -40,3 +40,10 @@ typedef struct {
 	char    *desc;
 	void    *next;
 }       pdtype;
+
+struct response {
+	char sysName;
+	char ifIdx;
+	char ifAlias;
+	char ifName;
+}

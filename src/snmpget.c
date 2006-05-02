@@ -1,27 +1,29 @@
 /* snmpget.c - SNMP OID retrieval functions for sdig
-
-   Copyright (C) 2002  Russell Kroll <rkroll@exploits.org>
-
-   based on snmp-ups.c from Network UPS Tools:
-
- *  Copyright (C) 2002 Arnaud Quette <arnaud.quette@free.fr>
- *  some parts are Copyright (C) :
+ * 
+ * Copyright (C) 2002  Russell Kroll <rkroll@exploits.org>
+ *
+ * based on snmp-ups.c from Network UPS Tools:
+ *
+ * Copyright (C) 2002 Arnaud Quette <arnaud.quette@free.fr>
+ * some parts are Copyright (C) :
  *                Hans Ekkehard Plesser <hans.plesser@itf.nlh.no>
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-*/
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * $Id$
+ */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -32,9 +34,10 @@
 
 #include "common.h"
 
-	netsnmp_pdu *response;
+netsnmp_pdu *response;
 
-static int snmpget(char *host, char *community, char *reqoid)
+int
+snmpget(char *host, char *community, char *reqoid)
 {
 	int	status;
 	netsnmp_session session, *ss;
@@ -86,7 +89,8 @@ static int snmpget(char *host, char *community, char *reqoid)
 	return 0;
 }
 
-int snmpget_int(char *host, char *community, char *reqoid)
+int
+snmpget_int(char *host, char *community, char *reqoid)
 {
 	int	ret;
 	long	final;
@@ -108,7 +112,8 @@ int snmpget_int(char *host, char *community, char *reqoid)
 	return final;
 }
 
-char *snmpget_mac(char *host, char *community, char *reqoid)
+char
+*snmpget_mac(char *host, char *community, char *reqoid)
 {
 	int	ret, i;
 	static	char	final[7];
@@ -137,7 +142,8 @@ char *snmpget_mac(char *host, char *community, char *reqoid)
 	return final;
 }
 
-char *snmpget_str(char *host, char *community, char *reqoid)
+char
+*snmpget_str(char *host, char *community, char *reqoid)
 {
 	int	ret;
 	char	*final;
