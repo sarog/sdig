@@ -1,6 +1,7 @@
 #!/bin/sh
 
-autoconf || exit 1
-automake || exit 1
+aclocal || exit 1
+autoreconf || exit 1
+automake --add-missing || exit 1
 
 ./configure
