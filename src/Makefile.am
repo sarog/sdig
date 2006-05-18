@@ -6,9 +6,14 @@ AM_CFLAGS = @NET_SNMP_CFLAGS@ -DCONFPATH=\"${sysconfdir}\"
 LDADD = @NET_SNMP_LIBS@
 
 sdig_SOURCES = \
-common.c \
-sdig.c \
-query.c \
-config.c \
-snmpget.c \
-output.c
+	common.c \
+	sdig.c \
+	query.c \
+	config.c \
+	snmpget.c \
+	output.c
+
+noinst_HEADERS = \
+	sdig.h \
+	common.h \
+	snmpget.h
