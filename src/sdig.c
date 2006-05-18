@@ -37,7 +37,6 @@
 #include "sdig.h"
 #include "common.h"
 #include "snmpget.h"
-#include "version.h"
 
 /*
  * Flags

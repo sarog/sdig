@@ -18,7 +18,6 @@
 #include "sdig.h"
 #include "common.h"
 #include "snmpget.h"
-#include "version.h"
 
 #include "../include/config.h"
 
