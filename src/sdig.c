@@ -17,6 +17,10 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
@@ -28,25 +32,20 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
 #include <sys/socket.h>
+#include <sysexits.h>
 
 #include "sdig.h"
 #include "common.h"
 #include "snmpget.h"
 #include "version.h"
 
-#include "../include/config.h"
+/*
+ * Flags
+ */
 
-extern stype	*firstsw = NULL;
-extern rtype	*firstrt = NULL;
-extern pdtype	*firstpd = NULL;
-extern litype	*firstli = NULL;
+int	verbose = 0, fastmode = 0;
 
-extern char	*wins = NULL, *nmblookup = NULL, *mactable = NULL,
-		*hostinfo = NULL;
-
-extern int	verbose = 0, fastmode = 0;
-
-static void
+void
 help(const char *prog)
 {
 	printf("SNMP-based router and switch probe for locating client systems.\n\n");
@@ -61,7 +60,7 @@ help(const char *prog)
 	printf("  <IP>		- IP address to find\n");
 	printf("  <hostname>	- DNS/WINS hostname to find\n");
 
-	exit(0);
+	exit(EX_OK);
 }
 
 int
@@ -77,7 +76,7 @@ main(int argc, char *argv[])
 	while ((i = getopt(argc, argv, "+dhf:m:vF")) != EOF) {
 		switch (i) {
 			case 'd':
-				debuglevel++;
+				inc_debuglevel();
 				break;
 
 			case 'f':
@@ -114,6 +113,7 @@ main(int argc, char *argv[])
 	query = argv[0];
 
 	loadconfig(conf);
+	output_sem_init();
 
 	/* split off to resolve things based on what kind of input we got */
 

@@ -41,9 +41,30 @@ typedef struct {
 	void    *next;
 }       pdtype;
 
-struct response {
-	char sysName;
-	char ifIdx;
-	char ifAlias;
-	char ifName;
-}
+/* holds the results of a matched port */
+struct result {
+	stype s;
+	char *ifIdx;
+	char *ifAlias;
+	char *ifName;
+} result;
+
+/*
+ * global data
+ */
+
+extern stype	*firstsw;
+extern rtype	*firstrt;
+extern pdtype	*firstpd;
+extern litype	*firstli;
+
+extern char *wins, *nmblookup, *mactable, *hostinfo;
+
+extern int fastmode, verbose;
+
+/*
+ * Function prototypes
+ */
+
+void printport(stype *sw, long port);
+void printmac(unsigned const char *mac);

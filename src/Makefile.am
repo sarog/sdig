@@ -2,7 +2,7 @@
 
 bin_PROGRAMS = sdig
 
-AM_CFLAGS = @NET_SNMP_CFLAGS@
+AM_CFLAGS = @NET_SNMP_CFLAGS@ -DCONFPATH=\"${sysconfdir}\"
 LDADD = @NET_SNMP_LIBS@
 
 sdig_SOURCES = \
@@ -10,4 +10,5 @@ common.c \
 sdig.c \
 query.c \
 config.c \
-snmpget.c
+snmpget.c \
+output.c

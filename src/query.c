@@ -13,6 +13,7 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
 #include <sys/socket.h>
+#include <sysexits.h>
 
 #include "sdig.h"
 #include "common.h"
@@ -21,17 +22,8 @@
 
 #include "../include/config.h"
 
-stype	*firstsw = NULL;
-rtype	*firstrt = NULL;
-pdtype	*firstpd = NULL;
-litype	*firstli = NULL;
-
-char	*wins = NULL, *nmblookup = NULL, *mactable = NULL,
-	*hostinfo = NULL;
-
-int	verbose = 0, fastmode = 0;
-
-static char *findmac(const char *ip, rtype *rtr)
+char
+*findmac(const char *ip, rtype *rtr)
 {
 	char	query[256], *ret;
 	int	ifnum;
@@ -69,7 +61,8 @@ static char *findmac(const char *ip, rtype *rtr)
 	return ret;
 }
 
-static int findport(unsigned const char *mac, stype *sw)
+int
+findport(unsigned const char *mac, stype *sw)
 {
 	char	query[64];
 
@@ -89,7 +82,8 @@ static int findport(unsigned const char *mac, stype *sw)
 	return snmpget_int(sw->ip, sw->pw, query);
 }
 
-static char *getlink(const char *ip, long port)
+char
+*getlink(const char *ip, long port)
 {
 	litype	*tmp;
 
@@ -105,7 +99,8 @@ static char *getlink(const char *ip, long port)
 	return NULL;
 }
 
-static char *getdesc(const char *ip, long port)
+char
+*getdesc(const char *ip, long port)
 {
 	pdtype	*tmp;
 
@@ -121,7 +116,8 @@ static char *getdesc(const char *ip, long port)
 	return NULL;
 }
 
-static const char *macmfr(unsigned char *inmac)
+const char
+*macmfr(unsigned char *inmac)
 {
 	FILE	*macdb;
 	char	buf[256], *tmp, macfind[16];
@@ -155,7 +151,8 @@ static const char *macmfr(unsigned char *inmac)
 	return "Not available";
 }
 
-static char *wins_resolve(const char *host)
+char
+*wins_resolve(const char *host)
 {
 	char	exec[256], buf[256];
 	FILE	*wq;
@@ -191,7 +188,8 @@ static char *wins_resolve(const char *host)
 	return(xstrdup(buf));
 }
 
-static char *dns_resolve(const char *host)
+char
+*dns_resolve(const char *host)
 {
 	struct	hostent	*dns;
 	struct	in_addr	addr;
@@ -206,7 +204,8 @@ static char *dns_resolve(const char *host)
 	return(xstrdup(inet_ntoa(addr)));
 }
 
-static void do_ifdescr(stype *sw, long port)
+void
+do_ifdescr(stype *sw, long port)
 {
 	char	query[256], *ifdescr, *ifname;
 	long	ifnum;
@@ -245,42 +244,8 @@ static void do_ifdescr(stype *sw, long port)
 	}
 }
 
-static void printport(stype *sw, long port)
-{
-	char	*ds, *li, *swdesc;
-	char	query[256];
-
-	/* don't print if it's a switch-switch link unless in verbose mode */
-
-	li = getlink(sw->ip, port);
-
-	if ((li) && (!verbose))
-		return;
-
-	snprintf(query, sizeof(query), "SNMPv2-MIB::sysName.0");
-	swdesc = snmpget_str(sw->ip, sw->pw, query);
-
-	if (swdesc)
-		printf("   Switch: %s (%s) - %s\n",
-			sw->desc, swdesc, sw->ip);
-	else
-		printf("   Switch: %s - %s\n", sw->desc, sw->ip);
-
-	printf("     Port: %ld", port);
-	do_ifdescr(sw, port);
-	printf("\n");
-	
-	if (li)
-		printf("     Link: %s\n", li);
-
-	ds = getdesc(sw->ip, port);
-	if (ds)
-		printf("     Info: %s\n", ds);
-
-	printf("\n");
-}
-
-static int isip(const char *buf)
+int
+isip(const char *buf)
 {
 	int	i;
 
@@ -291,7 +256,8 @@ static int isip(const char *buf)
 	return 1;
 }
 
-static void dnsreverse(const char *ip)
+void
+dnsreverse(const char *ip)
 {
 	struct	hostent	*dns;
 	struct	in_addr	addr;
@@ -310,7 +276,8 @@ static void dnsreverse(const char *ip)
 		printf(" Hostname: %s (DNS)\n", dns->h_name);
 }
 
-static stype *find_switch(const char *ipaddr, stype *last)
+stype
+*find_switch(const char *ipaddr, stype *last)
 {
 	stype	*tmp;
 	int	addrchk, swchk;
@@ -333,27 +300,19 @@ static stype *find_switch(const char *ipaddr, stype *last)
 	return NULL;
 }
 
-/* make the octet string into something nicer for humans */
-static void printmac(unsigned const char *mac)
-{
-	int	i;
-
-	for (i = 0; i < 5; i++)
-		printf("%02x:", mac[i]);
-
-	printf("%02x", mac[5]);
-}
+void fork_wrapper(unsigned const char *macaddr, stype *sw);
 
 /* ask the switch about where the MAC address is */
-static void switchscan(const char *ipaddr, unsigned const char *macaddr)
+void
+switchscan(const char *ipaddr, unsigned const char *macaddr)
 {
 	stype	*sw;
-	long	port;
+	int	ret, status;
 
 	printf("\n");
-
-	if (debuglevel >= 2) {
-		printf("switchscan: seeking (%s, ", ipaddr);
+	
+	if (get_debuglevel() >= 2) {
+		debug(2, "switchscan: seeking (%s, ", ipaddr);
 		printmac(macaddr);
 		printf(")\n");
 	}
@@ -362,21 +321,48 @@ static void switchscan(const char *ipaddr, unsigned const char *macaddr)
 
 	while (sw) {
 		debug(3, "switchscan: matched %s\n", sw->ip);
+	
+		ret = fork();
 
-		port = findport(macaddr, sw);
+		switch (ret) {
+			case 0:
+				fork_wrapper(macaddr, sw);
+				_exit(EX_OK);
+				break;
 
-		debug(3, "findport got port %d\n", port);
+			case -1:
+				perror("fork");
+				break;
 
-		if (port != -1)
-			printport(sw, port);
+			default:
+				debug(3, "child %d started\n", ret);
+				break;
+		}
 
 		sw = find_switch(ipaddr, sw);
 	}
+	
+	while ((ret = wait(&status)) != -1)
+		debug(3, "child %d exited\n", ret);
 
 	exit(0);
 }
 
-static rtype *find_router(const char *ipaddr, rtype *last)
+void
+fork_wrapper(unsigned const char *macaddr, stype *sw)
+{
+	long port;
+
+	port = findport(macaddr, sw);
+
+	if (port != -1)
+		printport(sw, port);
+
+	debug(3, "findport got port %d\n", port);
+}
+
+rtype
+*find_router(const char *ipaddr, rtype *last)
 {
 	rtype	*tmp;
 	int	addrchk, rtchk;
@@ -400,7 +386,8 @@ static rtype *find_router(const char *ipaddr, rtype *last)
 }
 
 /* run the user's script for extra details about a host */
-static void do_hostinfo(const char *ipaddr)
+void
+do_hostinfo(const char *ipaddr)
 {
 	char	exec[256];
 
@@ -411,7 +398,8 @@ static void do_hostinfo(const char *ipaddr)
 }
 
 /* walk the list of routers checking for the IP address */
-static void routerscan(const char *ipaddr)
+void
+routerscan(const char *ipaddr)
 {
 	unsigned char	*macaddr;
 	rtype	*rtr;
@@ -445,7 +433,7 @@ static void routerscan(const char *ipaddr)
 			printf("      MAC: ");
 			printmac(macaddr);
 			printf(" (%s)\n", macmfr(macaddr));
-
+			
 			switchscan(ipaddr, macaddr);
 		}
 
@@ -457,7 +445,8 @@ static void routerscan(const char *ipaddr)
 }	
 
 /* turn <name> into an IP address and pass it to the router scanner */
-static void resolvename(const char *name)
+void
+resolvename(const char *name)
 {
 	char	*ipaddr;
 
@@ -478,7 +467,8 @@ static void resolvename(const char *name)
 }
 
 /* see if the specified mac address is sane, and make it machine-readable */
-static char *pack_mac(char *buf)
+char
+*pack_mac(char *buf)
 {
 	int	i, cc, sl, v, mp;
 	char	*ptr, *cp; 
@@ -528,3 +518,5 @@ static char *pack_mac(char *buf)
 
 	return mac;
 }
+
+

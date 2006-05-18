@@ -33,8 +33,8 @@
 
 #include "common.h"
 
-static int		debuglevel = 0;
-static const char	*oom_msg = "Out of memory";
+int		debuglevel = 0;
+const char	*oom_msg = "Out of memory";
 
 /* debug levels:
  *
@@ -57,6 +57,18 @@ debug(int level, const char *format, ...)
 	va_start(args, format);
 	vprintf(format, args);
 	va_end(args);
+}
+
+void
+inc_debuglevel(void)
+{
+	debuglevel++;
+}
+
+int
+get_debuglevel(void)
+{
+	return debuglevel;
 }
 
 void

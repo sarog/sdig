@@ -2,22 +2,39 @@
  *  $Id$
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <ctype.h>
 #include <errno.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h> 
 #include <string.h> 
 #include <unistd.h> 
-#include <arpa/inet.h> 
-#include <netinet/in.h> 
-#include <sys/socket.h>
 
 #include "sdig.h"
 #include "common.h"
 
-#include "../include/config.h"
+/*
+ * Head pointers to object lists
+ */
+stype	*firstsw = NULL;
+rtype	*firstrt = NULL;
+pdtype	*firstpd = NULL;
+litype	*firstli = NULL;
+
+char	*wins = NULL, *nmblookup = NULL, *mactable = NULL,
+	*hostinfo = NULL;
+
+/*
+ * Function prototypes
+ */
+void addrouter(char *net, const char *ip, const char *pw, const char *desc);
+void addswitch(char *net, const char *ip, const char *pw, const char *desc);
+void addli(const char *ip, const char *port, const char *desc);
+void addpd(const char *ip, const char *port, const char *desc);
 
 void
 loadconfig(const char *fn)
@@ -27,7 +44,7 @@ loadconfig(const char *fn)
 	int	ln, i;
 
 	if (!fn) {
-		snprintf(cfn, sizeof(cfn), "%s/sdig.conf", "CONFPATH");
+		snprintf(cfn, sizeof(cfn), "%s/sdig.conf", CONFPATH);
 		conf = fopen(cfn, "r");
 	} else {
 		conf = fopen(fn, "r");
