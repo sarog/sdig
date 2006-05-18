@@ -1,3 +1,10 @@
+0.44:
+
+Thu May 18 11:24:23 PDT 2006 / Russell Jackson <raj@csub.edu
+
+* Split up source into modules
+* Parallelize MAC switch queries by fork()ing child worker processes
+
 0.43:
 
 Mon Apr 11 02:10:09 PDT 2005 / Russell Jackson <raj@csub.edu>
