@@ -15,10 +15,13 @@
 #include "sdig.h"
 
 enum ops { UNLOCK = 1, LOCK = -1 };
-
 int lock = 0;
 
-void output_sem_init()
+/*
+ * initialize output locking semaphore
+ */
+void
+output_sem_init()
 {
 	int ret;
 	
@@ -51,7 +54,11 @@ void output_sem_init()
 		exit(EX_SOFTWARE);
 }
 
-void output_sem_cleanup()
+/*
+ * deallocate lock semaphore
+ */
+void
+output_sem_cleanup()
 {
 	int ret;
 
@@ -63,7 +70,11 @@ void output_sem_cleanup()
 	}
 }
 
-void output_lock(enum ops op)
+/*
+ * toggle output lock
+ */
+void
+output_lock(enum ops op)
 {
 	struct sembuf buf = { 0, 0, SEM_UNDO };
 	int ret;
@@ -77,7 +88,9 @@ void output_lock(enum ops op)
 	}
 }
 
-/* make the octet string into something nicer for humans */
+/*
+ * make the octet string into something nicer for humans
+ */
 void
 printmac(unsigned const char *mac)
 {
@@ -128,5 +141,3 @@ printport(stype *sw, long port)
 
 	output_lock(UNLOCK);
 }
-
-
