@@ -2,6 +2,10 @@
  * $Id$
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
@@ -18,8 +22,6 @@
 #include "sdig.h"
 #include "common.h"
 #include "snmpget.h"
-
-#include "../include/config.h"
 
 char
 *findmac(const char *ip, rtype *rtr)
@@ -324,16 +326,17 @@ switchscan(const char *ipaddr, unsigned const char *macaddr)
 		ret = fork();
 
 		switch (ret) {
-			case 0:
+			case 0: /* child process */
 				fork_wrapper(macaddr, sw);
 				_exit(EX_OK);
 				break;
 
 			case -1:
 				perror("fork");
+				exit(EX_SOFTWARE);
 				break;
 
-			default:
+			default: /* parent process */
 				debug(3, "child %d started\n", ret);
 				break;
 		}
@@ -344,7 +347,9 @@ switchscan(const char *ipaddr, unsigned const char *macaddr)
 	while ((ret = wait(&status)) != -1)
 		debug(3, "child %d exited\n", ret);
 
-	exit(0);
+	output_sem_cleanup();
+
+	exit(EX_OK);
 }
 
 void
@@ -517,5 +522,3 @@ char
 
 	return mac;
 }
-
-
