@@ -1,6 +1,6 @@
-/* sdig.c - the Switch Digger main file
- *
+/*
  *  Copyright (C) 2000  Russell Kroll <rkroll@exploits.org>
+ *  Copyright (C) 2006	Russell Jackson <raj@csub.edu>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ *  $Id$
  */
 
 #ifdef HAVE_CONFIG_H
