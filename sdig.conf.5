@@ -20,7 +20,7 @@ This file should not be world-readable.
 
 .SH DIRECTIVES
 
-.IP "ROUTER \fInetwork\fR \fIaddr\fR \fIcommunity\fR \fIdescription\fR"
+.IP "ROUTER \fInetwork\fR \fIaddr\fR \fIcommunity\fR \fIdescription\fR \fIrtr_ip\fR"
 
 List a router for the network \fInetwork\fR (CIDR or a.b.c.d/x.x.x.x
 format) at IP address \fIaddr\fR using SNMP community \fIcommunity\fR.
@@ -30,13 +30,43 @@ of whitespace (spaces, tabs, etc).
 
 	ROUTER 192.168.3.0/24 192.168.3.1 mycommunity "Company core router"
 
+Optional \fIrtr_ip\fR can be used to provide an explicit IP address of the 
+routing interface in the target \fInetwork\fR. Otherwise the same \fIaddr\fR 
+used for SNMP queries is used as the routing interface address, which may be 
+wrong. For example, firewall rules may allow SNMP access to only one IP 
+of the router, but ARP lookups usually require specific interfaces within
+the target's subnet.
+
+For example, to query the router (\fIrtr_ip\fR) 192.168.2.1 of the 
+\fInetwork\fR 192.168.2.0/24 via SNMP interface (\fIaddr\fR) 192.168.3.254 
+configure a line like this:
+
+	ROUTER 192.168.2.0/24 192.168.3.254 mycommunity "Company core router" 192.168.2.1
+
+Textual Hostnames can be used for \fIrtr_ip\fR and \fIaddr\fR, subject to
+be resolved by system (via /etc/hosts or DNS Resolver).
+
+NOTE: Some switches, namely Cisco Catalyst (IOS), require SNMP queries  
+for different VLANs to use different community strings. For example, to 
+look up \fImycommunity\fR in VLAN123 you'll need to write
+\fImycommunity@123\fR.
+
 .IP "SWITCH \fInetwork\fR \fIaddr\fR \fIcommunity\fR \fIdescription\fR"
 
-Like ROUTER, but for a switch instead.
+Like ROUTER, but for a switch instead. Note there's no equivalent of 
+\fIrtr_ip\fR.
 
 	SWITCH 192.168.3.0/24 192.168.3.2 mycommunity "Upstairs data room"
 
 	SWITCH 192.168.3.0/24 192.168.3.3 mycommunity "Downstairs data room"
+
+Textual Hostnames can be used for \fIaddr\fR, resolved by system 
+(/etc/hosts or DNS Resolver).
+
+NOTE: Some switches, namely Cisco Catalyst (IOS), require SNMP queries  
+for different VLANs to use different community strings. For example, to 
+look up \fImycommunity\fR in VLAN123 you'll need to write
+\fImycommunity@123\fR.
 
 .IP "LINKINFO \fIaddr\fR \fIport num\fR \fIdescription\fR"
 
@@ -55,9 +85,15 @@ Describe a port in a switch.  Usually used for details like patch panel
 numbers and other things that can't be inferred by asking the equipment
 directly.
 
+Also useful for downlink ports to either "dumb" active equipment (i.e.
+hubs with no SNMP capabilities) or to another network's equipment to
+which you have no SNMP-query access (unknown community name).
+
 	PORTDESC 192.168.3.2 1 "Upstairs patch panel #10"
 
 	PORTDESC 192.168.3.3 25 "Fiber to remote site"
+
+	PORTDESC 192.168.3.3 48 "UPLINK to Campus ISP"
 
 .IP "WINS \fIaddr\fR"
 
@@ -100,5 +136,8 @@ a good place to put a call to Samba's nmblookup.
 .SH SEE ALSO
 \fBsdig\fR(8)
 
-.SH AUTHOR
-Russell Kroll <rkroll@exploits.org>
+.SH AUTHORS
+Russell Kroll <rkroll@exploits.org>     up till sdig-0.40
+Russell A. Jackson <raj@csub.edu>       sdig-0.41 .. sdig-0.44
+Jim Klimov <jimklimov@gmail.com>        sdig-0.45
+

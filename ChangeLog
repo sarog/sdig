@@ -1,6 +1,48 @@
+0.45:
+
+Tue Jul 27 15:35:00 MSD 2010 / Jim Klimov <jimklimov@gmail.com>
+
+ * Added feature: search only by MAC address, without an IP (and check each
+   switch only once) - checks all available switches and communities
+ * Added feature: accept MAC addresses in various formats -
+        Standard XX:XX:XX:XX:XX:XX
+        Windows  XX-XX-XX-XX-XX-XX
+        Hewlett  XXXXXX-XXXXXX
+        Cisco    XXXX.XXXX.XXXX
+        Unseparated XXXXXXXXXXXX
+   Standard and Windows formats may have 0 to 2 hex digits in each component.
+   Less than 2 digits are zero-padded, more are processed as an error.
+   MAC adresses are "tolower()ed" as to easily copy them to switch telnet
+   sessions (i.e. for Cisco IOS "sh mac- | in maca.ddre.ss01")
+ * Added feature: for ROUTER config entries we can have a separate "SNMP IP"
+   (old position of IP address) and "Routing interface IP" (optional sixth
+   position). For future format expansions, an empty string ("") can be
+   specified (if a seventh parameter is added, but then it is mandatory).
+   This feature allows to run SNMP queries against an IP address accessible
+   from the management station, but request info about an interface in
+   the specific subnet (used for ARP lookups to find the target host's MAC).
+ * Added feature: ROUTER configurations can also (like SWITCHes) use textual
+   host names for "SNMP IP" and/or "Routing interface IP". Previously the
+   "SNMP IP == Routing interface IP" could only be a numeric IP address.
+   Now resolvable names can be used and forged i.e. via /etc/hosts, so
+   that the same sdig.conf can be used from mgmt stations in different
+   subnets accessing different "SNMP IP" hosts.
+   Useful against inter-subnet firewalls ;)
+   The resolved IP value is reported at debug_level >= 1.
+ * Added feature: print user-defined interface descriptions (ifAlias) from
+   SNMP lookups, if available, in curly braces. The ifDesc value is almost
+   useless, since many switches (HP, Cisco) fill it with port's long name.
+ * Fixed a number of bugs with implementation of parallelized queries in
+   trunk 0.44 svn version. Added preprocessor IFDEFs and runtime flags to
+   enable or disable the feature, but now it works well on 3 tested OSes
+   (OpenSolaris x86, Solaris 10 SPARC, Linux i386).
+ * Avaya IP Office 500 was found to insert an extra level (.1.) into OIDs
+   so the code includes a workaround for that as well.
+ * Updated distro docs and manpages
+
 0.44:
 
-Thu May 18 11:24:23 PDT 2006 / Russell Jackson <raj@csub.edu
+Thu May 18 11:24:23 PDT 2006 / Russell Jackson <raj@csub.edu>
 
 * Split up source into modules
 * Parallelize MAC switch queries by fork()ing child worker processes

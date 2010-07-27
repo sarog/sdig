@@ -1,0 +1,75 @@
+#!/bin/bash
+
+### $Id: $
+### Run some host pre-checks before bugging routers and switches
+### i.e. ping the path to host, so all networking equipment has its MAC ready
+### (C) Oct 2005 (Linux), Jul 2010 (Solaris, config files) by Jim Klimov
+
+### Define the space-separated list of interfaces to send (ar)pings from
+### i.e. if directly connected to several VLANs for monitoring purposes
+[ x"$INTERFACES" = x ] && INTERFACES="`ifconfig -a | egrep 'flags=|HWaddr' | awk '{ print $1}' | egrep -v '^lo' | sed 's/:$//'`"
+
+### This MAC of router answers as ARP cache (regexp value in local OS format)
+[ x"$ROUTERMAC" = x ] && ROUTERMAC='00:16:9C:70:34:00'
+
+PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/sfw/bin:/usr/sfw/sbin:/opt/sfw/bin:/opt/sfw/sbin:$PATH"
+### If needed add path to nmblookup
+PATH="/usr/local/samba/bin:$PATH"
+export PATH
+
+ARPING=""
+BIN=`which arping 2>/dev/null`
+if [ $? = 0 ]; then
+    if [ -x "$BIN" ]; then
+	ARPING="$BIN"
+    fi
+fi
+
+if [ -r "$HOME/.sdig-cgi.conf" ]; then
+    . "$HOME/.sdig-cgi.conf"
+else
+    if [ -r "/etc/sdig-cgi.conf" ]; then
+	. "/etc/sdig-cgi.conf"
+    fi
+fi
+
+### Enable debug
+[ x"$debug" = x1 ] && set -x && exec 2>&1
+
+[ $# -ne 1 ] && echo "IP/HOST required!" && exit 1
+IP="$1"
+
+for IFACE in $INTERFACES; do
+    echo "=== (Ar+)Ping to plot path from `hostname` ($IFACE)"
+
+    case "`uname`" in
+	Linux)
+	    ping -q -c 3 -w 4 "$IP" -I $IFACE &
+	    if [ x"$ARPING" != x ]; then
+		( arping -c 3 -w 4 "$IP" -I $IFACE | egrep -vi "$ROUTERMAC" ) &
+	    fi
+	    ;;
+	SunOS)
+	    ping -ns -i $IFACE "$IP" 56 3 &
+	    if [ x"$ARPING" != x ]; then
+		###( arping -c 3 -w 4 "$IP" -I $IFACE | egrep -vi "$ROUTERMAC" ) &
+		( arping -c 3 -w 4000 -i $IFACE "$IP" | egrep -vi "$ROUTERMAC" ) &
+	    fi
+	    ;;
+	*)  ( ping "$IP" | head -5 ) &
+	    ;;
+    esac
+done
+
+wait
+
+BIN=`which nmblookup 2>/dev/null`
+if [ $? = 0 ]; then
+    if [ -x "$BIN" ]; then
+	echo "=== NMB lookup"
+	nmblookup -A "$IP"
+    fi
+fi
+
+echo "=== Proceed to Router digging now..."
+

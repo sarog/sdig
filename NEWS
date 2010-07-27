@@ -1,3 +1,13 @@
+Release notes for 0.45
+
+Maintainers have changed, the project moved to SourceForge, and a host of
+new features were added (see ChangeLog). In particular, you can now do
+parallelized SNMP searches over several devices simultaneously, search
+for a MAC address on all switches, and use different IPs (or hostnames)
+for SNMP queries and as routing interfaces of ROUTER's.
+
+Tested to work on Linux and Solaris.
+
 Release notes for 0.40
 
 The build system now uses autoconf, so you can do the usual tricks with 

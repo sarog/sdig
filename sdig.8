@@ -2,7 +2,7 @@
 .SH NAME
 sdig \- The Switch Digger
 .SH SYNOPSIS
-.B sdig [-d] [-v] [-F] [-f \fIconfig\fB] [-m \fIMAC\fB] ( \fIIP\fB | \fIhostname\fB )
+.B sdig [-d] [-v] [-F] [-p/-P] [-f \fIconfig\fB] [-m/-m \fIMAC\fB] ( \fIIP\fB | \fIhostname\fB )
 
 .SH DESCRIPTION
 
@@ -19,12 +19,13 @@ switch is returned, along with any description you may have provided.
 
 .SH OPTIONS
 
-.IP -d
-Raise the debugging level.  This gets rather messy above 3 or 4.
+.IP "-d"
+Raise the debugging level by 1.  This gets rather messy above 3 or 4.
 
-.IP -v
+.IP "-v"
 Be verbose.  This makes sdig print every port instead of just the one that
-is the most likely candidate, for example.
+is the most likely candidate, for example (includes inter-switch ports 
+with LINKINFO written in sdig.conf).
 
 .IP "-F"
 Fast mode.  sdig will not do reverse DNS (in-addr.arpa) or NetBIOS queries
@@ -35,15 +36,33 @@ Use the configuration file \fIconfig\fR.
 
 .IP "-m \fIMAC\fR"
 Look for this MAC address rather than asking a router about it.  You still
-must provide an IP address or hostname so that sdig knows which network
-to check.  A total-network sweep option is planned for the future.
+can provide an IP address or hostname so that sdig knows which network
+to check.
 
-.IP IP
+.IP "-m"
+A total-network sweep option is when you don't provide the IP, takes longer
+to query all switches, so care is taken than each IPxCOMMUNITY is only
+queried once.
+
+.IP \fIIP\fR
 An Internet Protocol address to find, i.e. 192.168.1.1.
 
-.IP hostname
+.IP \fIhostname\fR
 A DNS or WINS hostname to find.  WINS resolution is only available if you
 have installed nmblookup from Samba and have added it to your config file.
+
+.IP "-p/-P"
+Parallelized SNMP queries have been added and improved as a feature of
+the recent sdig versions. If compiled in, they can be disabled at run time,
+or different activities may be done at discretion of future programmers.
+"-p" increases the "use parallelism" counter.
+"-P" decreases the "use parallelism" counter, but to no less than zero.
+You might want to disable this i.e. if it misbehaves on your platform,
+or if you have very many switches and spawning many children would exhaust
+your file descriptors (network sockets) or process table entries.
+Hint: Future versions may add a limit on number of spawned children.
+If the "parallelized queries" feature is not compiled in, these "-p/-P"
+flags are recognized, but ignored.
 
 .SH LIMITATIONS
 You can't track down arbitrary hosts on the Internet.  Well, most people
@@ -55,19 +74,26 @@ sdig host.  US government three letter entities: contact me for details.
 This program was developed on just one kind of system (Linux glibc2) 
 so it probably doesn't compile cleanly on others.
 
+NOTE: version 0.45 was developed on Solaris x86/SPARC and also works there.
+
 .SH BACKGROUND
-I first wrote this program to show some local people that you don't need
-to dump lots of money into a program like 3com's Transcend just to hunt 
-down some lusers on your network.  If you don't need to create fancy 
-network diagrams to impress the PHBs, then this program will probably work
-for you.
+I (Russell Kroll) first wrote this program to show some local people 
+that you don't need to dump lots of money into a program like 3com's 
+Transcend just to hunt down some lusers on your network.  If you don't 
+need to create fancy network diagrams to impress the PHBs, then this 
+program will probably work for you.
 
 It was developed originally on 3com SuperStack 3300s, and continues
 to be tested both on those and various HP 2324s and 4108s.  Other
 equipment should also work if it provides the same basic OIDs.
 
+Jim Klimov also tested it in a diverse network with HP, Cisco, Avaya,
+and Allied Telesyn equipment, to name a few.
+
 .SH SEE ALSO
 \fBsdig.conf\fR(5)
 
-.SH AUTHOR
-Russell Kroll <rkroll@exploits.org>
+.SH AUTHORS
+Russell Kroll <rkroll@exploits.org>     up till sdig-0.40
+Russell A. Jackson <raj@csub.edu>       sdig-0.41 .. sdig-0.44
+Jim Klimov <jimklimov@gmail.com>        sdig-0.45

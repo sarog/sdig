@@ -74,12 +74,36 @@ doing the queries, so be sure you get it in there.
 
 For each router, add a line like this to your config file:
 
-ROUTER <network> <router ip> <SNMP community> <"description">
+ROUTER <network> <router/snmp ip> <SNMP community> <"description"> <routing interface IP>
 
 For a network 192.168.3.0/24 with a router 192.168.3.1 and a read-only
 community string of hackme in a high school, you might use this:
 
 ROUTER 192.168.3.0/24 192.168.3.1 hackme "Randomville High School"
+
+Note that Cisco IOS switches can have different SNMP community strings
+for different VLANs, defined as "basepwd@VLANnumber". For example,
+if the network above is in vlan 123 on a Cisco router, the definition
+will look like:
+
+ROUTER 192.168.3.0/24 192.168.3.1 hackme@123 "Randomville High School"
+
+Up till sdig-0.43, the router IP for SNMP queries had to be the same as
+the routing interface IP (within the defined network for a target host).
+This was not convenient for networks secured by firewalls (i.e. only
+one interface of the router can serve SNMP to your management station),
+and fixed in sdig-0.45.
+NOTE: now you can also use textual host names for "SNMP IP" as well as
+for the "routing interface IP". This allows to use the same sdig.conf
+file in various locations of your network, where different accessible
+"SNMP IP" addresses are resolved by customized /etc/hosts or DNS views.
+
+For a network 192.168.2.0/24 with another router with the "routing
+interface IP" in the target subnet being 192.168.2.1, but which
+is only accessible to your station over SNMP with a different 
+interface, namely 192.168.1.254, you might use this:
+
+ROUTER 192.168.2.0/24 192.168.1.254 hackme "Randomville High School" 192.168.2.1
 
 Repeat as necessary to list everything you can.
 
@@ -92,6 +116,9 @@ SWITCH <network> <switch ip> <SNMP community> <"description">
 SWITCH 192.168.3.0/24 192.168.3.10 hackme "RHS main data closet"
 SWITCH 192.168.3.0/24 192.168.3.11 hackme "RHS computer lab"
 SWITCH 192.168.3.0/24 192.168.3.12 hackme "RHS office"
+SWITCH 192.168.3.0/24 192.168.3.253 hackme@123 "RHS cisco backbone"
+
+You can also use textual host names for "switch ip" values.
 
 With the ROUTER and SWITCH directives set, you can take it for a test
 flight.  It won't be much to look at, but it will let you know if
@@ -202,3 +229,7 @@ looking for "0:90:27:c2:2c:e5" yields something like this:
 Here, the "query" is actually a helper to tell sdig where to look.  You
 can provide a hostname of a neighboring system, since that will resolve
 to an IP address which will be used for router discovery.
+
+Since sdig-0.45 you can also query all configured switches for the specific
+MAC address, by providing no host name/ip. Each source will only be checked
+once (unique "switch IP x community string").

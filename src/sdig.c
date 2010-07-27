@@ -1,6 +1,12 @@
-/*
- *  Copyright (C) 2000  Russell Kroll <rkroll@exploits.org>
- *  Copyright (C) 2006	Russell Jackson <raj@csub.edu>
+/* sdig.c - the Switch Digger main file
+ * Current version is on SourceForge:   http://sdig.sourceforge.net/
+ *
+ *  Copyright (C) 2000-2003  Russell Kroll <rkroll@exploits.org>
+ *	    up till sdig-0.40
+ *  Copyright (C) 2005-2006  Russell Jackson <raj@csub.edu>
+ *	    sdig-0.41 .. sdig-0.44
+ *  Copyright (C) 2010  Jim Klimov <jimklimov@gmail.com>
+ *	    sdig-0.45 .. 0.46 (in progress)
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,7 +50,7 @@
  * Flags
  */
 
-int	verbose = 0, fastmode = 0;
+int	verbose = 0, fastmode = 0, dofork = 0;
 
 void
 help(const char *prog)
@@ -60,6 +66,12 @@ help(const char *prog)
 	printf("  -v		- be verbose\n");
 	printf("  <IP>		- IP address to find\n");
 	printf("  <hostname>	- DNS/WINS hostname to find\n");
+	printf("  -p / -P	- enable / disable forking children for SNMP queries\n");
+#ifdef SDIG_USE_SEMS
+	printf("  		  (NOTE: enabled by default)\n");
+#else
+	printf("  		  (NOTE: feature NOT COMPILED into this binary)\n");
+#endif
 
 	exit(EX_OK);
 }
@@ -67,17 +79,40 @@ help(const char *prog)
 int
 main(int argc, char *argv[])
 {
-	char	*prog, *query, *conf = NULL, *mac = NULL;
+	char	*prog, *query, *conf = NULL, *mac = NULL, *stdmac = NULL;
 	int	i;
 
-	printf("Switch Digger %s\n\n", VERSION);
+	printf("Switch Digger %s", VERSION);
+#ifdef SDIG_USE_SEMS
+	printf(", query forking capable", VERSION);
+	dofork=1;
+#else
+	dofork=0;
+#endif
+	printf("\n\n");
 
 	prog = argv[0];
 
-	while ((i = getopt(argc, argv, "+dhf:m:vF")) != EOF) {
+	while ((i = getopt(argc, argv, "+dpPhf:m:vF")) != EOF) {
 		switch (i) {
 			case 'd':
 				inc_debuglevel();
+				break;
+
+			case 'p':
+#ifdef SDIG_USE_SEMS
+				dofork++;
+#else
+				printf("ERROR: query forking not compiled in, '-p' ignored\n");
+#endif
+				break;
+
+			case 'P':
+#ifdef SDIG_USE_SEMS
+				dofork--;
+#else
+				printf("ERROR: query forking not compiled in, '-P' ignored\n");
+#endif
 				break;
 
 			case 'f':
@@ -108,18 +143,26 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	if (argc < 1)
+	if (argc < 1 && !(mac))
 		help(prog);
 
+	if (argc == 0) {
+		query = NULL;
+	} else {
 	query = argv[0];
+	}
 
 	loadconfig(conf);
-	output_sem_init();
+#ifdef SDIG_USE_SEMS
+	if ( dofork < 0 ) { dofork = 0; }
+	printf("Query forking is currently %s\n\n", (dofork?"enabled":"disabled") );
+	if ( dofork ) { output_sem_init(); }
+#endif
 
 	/* split off to resolve things based on what kind of input we got */
 
 	/* hostname (DNS or WINS) given */
-	if (!isip(query)) {
+	if ((query) && !isip(query)) {
 		printf("    Query: %s\n", query);
 		resolvename(query);
 
@@ -127,13 +170,25 @@ main(int argc, char *argv[])
 	}
 
 	/* MAC address specified, along with target network */
-	if ((mac) && (isip(query))) {
-		printf("    Query: %s in network %s\n", 
-			mac, query);
+	if ((mac)) {
+		stdmac = standardize_mac(mac);
 
-		switchscan(query, pack_mac(mac));
+		if ((query) && (isip(query))) {
+			printf("    Query: MAC %s in network %s\n", 
+				stdmac, query);
+
+			switchscan(query, pack_mac(stdmac));
 
 		/* NOTREACHED */
+		} else {
+			/* Only a MAC is provided */
+			printf("    Query: MAC %s in any network\n", 
+				stdmac);
+
+			switchscan(NULL, pack_mac(stdmac));
+
+			/* NOTREACHED */
+		}
 	}
 
 	/* just an IP address given */

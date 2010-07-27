@@ -23,10 +23,29 @@ Then there are the blue sky items, such as:
 
  - -m <MAC> should have a way to go through all of the routers in 
    the config file if you really have no idea where a host is
-
- - Come up with some way to parallelize the switch query stage -
-   some of my locations have up to 10 switches and it can take awhile
-   to find the right one
+ ++ (done in 0.45 for going through all SWITCHes, regardless of IP/subnet)
+ -- also going through ROUTERs is a nifty idea, see also below
 
  - While doing MAC-based searches, it should also hit the routers and
    try to reverse it back to IP address(es) for extra tracking help
+ -- ...and fetch VLAN IDs which contain the MAC (may be many)
+ -- and check all of the router's tables, not just those configured
+   according to subnets
+
+ - include snmpwalk of a router (IP-MIB::ipAdEntNetMask probably) to get
+   its routing interface IPs and netmasks and automatically derive the
+   interfaces for lookup
+
+ - for extra confirmation, i.e. when other methods failed, try looking up
+   the switches' ARP tables; some switches have them.
+
+ - include ping so that routers/switches would cache the needed IP/MAC.
+   This quest also needs autoconf detector of capabilities for portability.
+
+ - include lookups of local host's ARP table, bypassing SNMP (i.e. good
+   for a management station with links to many/all subnets).
+   This quest also needs autoconf detector of capabilities for portability.
+   Work in progress postponed for sdig-0.46.
+
+ - add a flag to limit number of spawned child processes for parallelized
+   queries.

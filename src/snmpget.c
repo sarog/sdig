@@ -34,6 +34,8 @@
 
 #include "common.h"
 
+static char *oid_to_ascii(oid* name, size_t name_length);
+
 netsnmp_pdu *response;
 
 int

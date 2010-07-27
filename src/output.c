@@ -14,8 +14,22 @@
 
 #include "sdig.h"
 
-enum ops { UNLOCK = 1, LOCK = -1 };
+#include <net-snmp/net-snmp-config.h>
+#include <net-snmp/net-snmp-includes.h>
+
+#include "snmpget.h"
+
+#ifdef SDIG_USE_SEMS
+
+enum ops { UNLOCK = (int)1, LOCK = (int)(-1) };
+union semun {
+    int val;
+    struct semid_ds *buf;
+    ushort *array;
+};
+
 int lock = 0;
+// int pad = 0;
 
 /*
  * initialize output locking semaphore
@@ -24,14 +38,20 @@ void
 output_sem_init()
 {
 	int ret;
-	
+	union semun semarg;
+
 	/*
 	 * Create semaphore set with permissions for us to
 	 * read and alter it
 	 */
+	debug(3, "output_sem_init: getting semaphore... sz=%d\n", sizeof(int));
 	lock = semget(IPC_PRIVATE, 1, IPC_EXCL | IPC_CREAT | 0600);
 
-	if (lock == -1) {
+/* http://beej.us/guide/bgipc/output/html/singlepage/bgipc.html#semaphores
+ * inspired by W. Richard Stevens' UNIX Network Programming 2nd edition,
+ *   volume 2, lockvsem.c, page 295
+ */
+	if (lock < 0) {
 		perror("semget");
 		goto error;
 	}
@@ -41,12 +61,23 @@ output_sem_init()
 	/*
 	 * the lock needs to be initialized to un unlocked state
 	 */
-	ret = semctl(lock, 0, SETVAL, UNLOCK);
+	debug(7, "ret = semctl (%d, %d, %d)\n", lock, 0, GETVAL);
+	ret = semctl(lock, 0, GETVAL);
+	debug(7, "ret = %d\n", ret );
+
+	semarg.val = UNLOCK;
+	debug(7, "ret = semctl (%d, %d, %d, %d)\n", lock, 0, (int)SETVAL, semarg);
+	ret = semctl(lock, 0, SETVAL, semarg);
+	debug(7, "ret = %d\n", ret );
+
+	debug(3, "output_sem_init: passed semctl (ret=%d)\n", ret);
 
 	if (ret == -1) {
 		perror("semctl");
 		goto error;
 	}
+
+	debug(3, "output_sem_init: unlocked lock\n");
 
 	return;
 
@@ -78,7 +109,7 @@ output_lock(enum ops op)
 {
 	struct sembuf buf = { 0, 0, SEM_UNDO };
 	int ret;
-	
+
 	buf.sem_op = op;
 	ret = semop(lock, &buf, 1);
 
@@ -87,6 +118,9 @@ output_lock(enum ops op)
 		exit(EX_SOFTWARE);
 	}
 }
+#endif
+// ifdef SDIG_USE_SEMS
+
 
 /*
  * make the octet string into something nicer for humans
@@ -102,13 +136,34 @@ printmac(unsigned const char *mac)
 	printf("%02x", mac[5]);
 }
 
+
+/*
+ * make the OID numeric string for debug dumps, etc.
+ */
+char 
+*oid_to_ascii(oid* name, size_t name_length) {
+	static char s[MAX_OID_LEN*12];
+	size_t i;
+	unsigned long j, k;
+
+	j = 0;
+	for (i = 0; i < name_length; i++) {
+		j += sprintf(s+j, "%u", name[i]);
+		s[j++] = '.';
+	}
+	s[j-1] = '\0';
+	return s;
+}
+
 void
 printport(stype *sw, long port)
 {
 	char	*ds, *li, *swdesc;
 	char	query[256];
 
-	output_lock(LOCK);
+#ifdef SDIG_USE_SEMS
+	if ( dofork ) { output_lock(LOCK); }
+#endif
 
 	/* don't print if it's a switch-switch link unless in verbose mode */
 
@@ -139,5 +194,7 @@ printport(stype *sw, long port)
 
 	printf("\n");
 
-	output_lock(UNLOCK);
+#ifdef SDIG_USE_SEMS
+	if ( dofork ) { output_lock(UNLOCK); }
+#endif
 }

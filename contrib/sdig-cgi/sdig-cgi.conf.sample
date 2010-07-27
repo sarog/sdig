@@ -1,0 +1,49 @@
+### sdig-cgi.conf.sample
+##########################################################
+### Here are some site-specific configuration variables for sdig.cgi wrapper
+### Shell-Format: VAR=VALUE
+### They can (and should) be overriden by config files:
+### personal $HOME/.sdig-cgi.conf overrides global /etc/sdig-cgi.conf
+
+### If desired to trim IPs to known local networks, define this regexp:
+### If not defined, any IP will be searched
+# ipMask='^(192\.168\.8[0-5]|194\.85\.8[0-3]|81\.5\.8[0-7]|10\.84\.\d{1,3}|10\.10\.[12345678]0)\.\d{1,3}$'
+# ipMask='^(192\.168\.\d{1,3}|10\.(55|84)\.\d{1,3}|172\.16\.[12345678]0)\.\d{1,3}$'
+
+### List of local interfaces to try and ping from
+#INTERFACES="eth0 vnic1 e1000g0:2"
+
+### Parameters for traceroute in sdig-preamble.
+### You can add a specific first-hop gateway, for example...
+[ x"$TRACERT_PARAMS" = x ] && TRACERT_PARAMS="-nI"
+
+### Pre-fill the HTML request table with one or more strings?
+HTML_DEFAULT_IP=""
+HTML_DEFAULT_MAC=""
+HTML_DEFAULT_HOST=""
+
+### Define an IP to substitute for SDIG call when searching by MAC
+### (IP is ignored)
+defaultIP='127.0.0.1'
+
+### This MAC of router answers as ARP cache, filtered away from found MACs
+### (you can provide several MACs as regexp in format processed by arping)
+#ROUTERMAC='00:16:9C:70:34:00'
+ROUTERMAC="XXX"
+
+### SDig Binary
+BINSDIG="/usr/local/bin/sdig"
+BINSDIGPING="/usr/local/bin/sdig-preamble"
+
+### ARPING binary
+### Set empty to skip arping (i.e. if doesn't work on your system)
+#ARPING="/usr/local/bin/arping"
+#ARPING=""
+
+### If unset, a hardcoded default will be used.
+### Can override in private configs.
+#CFGSDIG="/etc/sdig.conf"
+
+debug=0
+debug_sdig=0
+

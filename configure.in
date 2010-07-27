@@ -1,5 +1,5 @@
 AC_INIT(src/sdig.c)
-AM_INIT_AUTOMAKE(sdig, 0.44cvs)
+AM_INIT_AUTOMAKE(sdig, 0.45cvs)
 AC_CONFIG_HEADER(include/config.h)
 AC_REVISION([$Id$])
 

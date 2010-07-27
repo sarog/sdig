@@ -31,7 +31,7 @@ char	*wins = NULL, *nmblookup = NULL, *mactable = NULL,
 /*
  * Function prototypes
  */
-void addrouter(char *net, const char *ip, const char *pw, const char *desc);
+void addrouter(char *net, const char *ip, const char *pw, const char *desc, const char *rtrip);
 void addswitch(char *net, const char *ip, const char *pw, const char *desc);
 void addli(const char *ip, const char *port, const char *desc);
 void addpd(const char *ip, const char *port, const char *desc);
@@ -40,7 +40,7 @@ void
 loadconfig(const char *fn)
 {
 	FILE	*conf;
-	char	cfn[256], buf[256], *arg[5];
+	char	cfn[256], buf[256], *arg[6];
 	int	ln, i;
 
 	if (!fn) {
@@ -60,13 +60,13 @@ loadconfig(const char *fn)
 		buf[strlen(buf) - 1] = '\0';
 		ln++;
 
-		i = parseconf("sdig.conf", ln, buf, arg, 5);
+		i = parseconf("sdig.conf", ln, buf, arg, 6);
 
 		if (i == 0)
 			continue;
 
 		if (!strcmp(arg[0], "ROUTER"))
-			addrouter(arg[1], arg[2], arg[3], arg[4]);
+			addrouter(arg[1], arg[2], arg[3], arg[4], arg[5]);
 		if (!strcmp(arg[0], "SWITCH"))
 			addswitch(arg[1], arg[2], arg[3], arg[4]);
 		if (!strcmp(arg[0], "LINKINFO"))
@@ -217,9 +217,10 @@ parseconf(const char *fn, int ln, char *buf, char **arg, int numargs)
 	return 1;	/* success */
 }
 
-/* ROUTER <netblock> <ip> <pw> <"desc"> */
+/* ROUTER <netblock> <ip> <pw> <"desc"> [rtr_iface_ip] */
 void
-addrouter(char *net, const char *ip, const char *pw, const char *desc)
+addrouter(char *net, const char *ip, const char *pw,
+   const char *desc, const char *rtrip)
 {
 	rtype	*tmp, *last;
 	char	*addr, *mask;
@@ -242,8 +243,31 @@ addrouter(char *net, const char *ip, const char *pw, const char *desc)
 	tmp = xmalloc(sizeof(rtype));
 	tmp->addr = ntohl(inet_addr(addr));
 	tmp->pw = xstrdup(pw);
+
+	if ( isip(ip) ) {
 	tmp->ip = xstrdup(ip);
+	} else {
+		tmp->ip = xstrdup(dns_resolve(ip, 0));
+		debug (1, "addrouter: dns_resolve'd ip: [%s] -> [%s]\n",
+		    ip, tmp->ip );
+	}
+
 	tmp->desc = xstrdup(desc);
+	if ( rtrip ) {
+		if ( (strlen(rtrip)==0) ) {
+			tmp->rtrip = NULL;
+		} else {
+			if ( isip(rtrip) ) {
+				tmp->rtrip = xstrdup(rtrip);
+			} else {
+				tmp->rtrip = xstrdup(dns_resolve(rtrip, 0));
+				debug (1, "addrouter: dns_resolve'd rtrip: [%s] -> [%s]\n",
+				    rtrip, tmp->rtrip );
+			}
+		}
+	} else {
+		tmp->rtrip = NULL;
+	}
 	tmp->next = NULL;
 
 	if (strstr(mask, ".") == NULL) { /* must be a /nn CIDR type block */

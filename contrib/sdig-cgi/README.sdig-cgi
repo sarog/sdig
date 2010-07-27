@@ -1,0 +1,17 @@
+This is a couple of scripts to enable a simple web interface to sdig.
+
+The perl script "sdig.cgi" takes care of rendering an HTML form to receive 
+IP/MAC/HOST parameters, calling sdig and producing results for the end-user 
+(net admin). 
+
+It can also call on "sdig-preamble" shell script to ping/arping/tracert the 
+path to the target host.
+
+Both scripts can take configuration parameters from a common per-user or 
+global config file ($HOME/.sdig-cgi.conf or /etc/sdig-cgi.conf).
+
+The web server user should have read access to the sdig.conf and sdig-cgi.conf
+files.
+
+(C) 2005-2010 by Jim Klimov
+
